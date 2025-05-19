@@ -11,18 +11,25 @@ let [nextbtn, setnextbtn] = useState(0)
 let [pagesize, setpagesize] = useState(6)
 let [loading, setloading] = useState(false);
 let [country, setCountry] = useState('us');
-// let [category, setCategory] = useState();
 
 
+ const { setProgress } = props;
 
+let capitalize =(words)=>{
+let text = words.toLowerCase();
+let capital = text.charAt(0).toUpperCase() + text.slice(1);
+return capital
+}
 let fetchapi = async ()=>{
   setloading(true);
+  setProgress && setProgress(1)
     let url = `https://newsapi.org/v2/top-headlines?country=${country}&category=${props.category}&page=${page}&apiKey=ef0069780d584148a96ea5eac4aa7f5a&pagesize=${pagesize}`;
     let data = await fetch(url);
     let parsedData = await data.json();
     Setarticles(parsedData.articles || [])
     setnextbtn(parsedData.totalResults || 0);
     setloading(false)
+      setProgress && setProgress(100)
 }
 useEffect(()=>{
 fetchapi();
@@ -32,6 +39,10 @@ useEffect(() => {
   setPage(1); // 🔁 Reset to page 1 when category changes
 }, [props.category]);
 
+
+useEffect(() =>{
+document.title = `${capitalize(props.category)}-NewsMonkey`
+},[props.category])
 
 let prevClick = ()=>{
 setPage(page - 1)
@@ -62,9 +73,10 @@ let nextClick = ()=>{
   return (
     <div>
       <div className='container'>
-        <h2 className='my-3'>Top News Headlines (US)</h2>
+        <h2 className='my-3'>Top News {capitalize(props.category)} Headlines </h2>
 {  loading &&    < Loading />}
         <div className="row">
+          
           { !loading && articles.map((element) => (
             <div className={`col-md-${col} `} key={element.url}>
               <NewsItem
@@ -74,6 +86,7 @@ let nextClick = ()=>{
                 url={element.url}
                 author={element.author}
                 publishedate={element.publishedAt}
+                source={element.source.name}
               />
             </div>
           ))}
